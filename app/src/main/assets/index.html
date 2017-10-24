@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Demo</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+    <!-- 用于方便web端调试 -->
+    <script src="https://res.wx.qq.com/mmbizwap/zh_CN/htmledition/js/vconsole/2.5.1/vconsole.min.js"></script>
+    <!-- JsBridge -->
+    <script src="./lib/jsbridge.js"></script>
+    <script src="./lib/jockey.js"></script>
+
+</head>
+
+<body>
+<p>特定协议</p>
+
+<a href="tel:10086">call 10086</a>
+<br/>
+<a href="market://details?id=com.tencent.mm">goto market</a>
+
+<p>
+    js -> app
+</p>
+<script>
+    console.log(Jockey)
+
+    Jockey.on("helloWeb",function(payload){
+        console.log("hello from native")
+        console.log(payload)
+    })
+
+    function sayHelloToNative(){
+        Jockey.send("helloNative")
+    }
+
+
+
+</script>
+<button onclick="sayHelloToNative()">sayHelloToNative</button>
+
+</body>
+</html>
