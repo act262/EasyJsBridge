@@ -4,22 +4,17 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center_horizontal"
     android:orientation="vertical"
-    tools:context="io.micro.easyjsbridge.MainActivity"
-    tools:ignore="HardcodedText">
+    tools:context="io.micro.easyjsbridge.web.SimpleWebActivity">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:title="@string/app_name" />
+        app:title="Simple WebView" />
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:onClick="clickSimple"
-        android:text="SimpleWebActivity"
-        android:textAllCaps="false" />
-
+    <FrameLayout
+        android:id="@+id/fl_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 </LinearLayout>

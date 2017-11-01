@@ -1,4 +1,4 @@
-package io.micro.easyjsbridge;
+package io.micro.easyjsbridge.app;
 
 import android.app.Application;
 
@@ -15,6 +15,7 @@ public class DemoApplication extends Application {
     public void onCreate() {
         super.onCreate();
 
+        // Use x5 webview
         QbSdk.initX5Environment(this, new QbSdk.PreInitCallback() {
             @Override
             public void onCoreInitFinished() {

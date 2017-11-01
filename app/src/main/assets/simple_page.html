@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple WebView</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+    <!-- 用于方便web端调试 -->
+    <script src="https://res.wx.qq.com/mmbizwap/zh_CN/htmledition/js/vconsole/2.5.1/vconsole.min.js"></script>
+    <!-- JsBridge -->
+    <script src="./lib/jockey.js"></script>
+    <script src="./lib/jsbridge.js"></script>
+
+</head>
+
+<body>
+<p>特定协议</p>
+<a href="tel:10086">call 10086</a>
+<br/>
+<a href="http://dldir1.qq.com/weixin/android/weixin6516android1120.apk">download apk</a>
+<br/>
+<a href="market://details?id=com.tencent.mm">goto market</a>
+
+<script>
+
+    Jockey.on("helloWeb", function (payload) {
+        console.log("hello from native")
+        console.log(payload)
+    });
+
+    function sayHelloToNative() {
+        Jockey.send("helloNative")
+    }
+
+
+</script>
+
+<p>
+    js -> app
+    <button onclick="sayHelloToNative()">sayHelloToNative</button>
+</p>
+
+</body>
+</html>
