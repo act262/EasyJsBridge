@@ -2,7 +2,6 @@ package io.micro.easyjsbridge.web;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.webkit.WebChromeClient;
@@ -11,11 +10,18 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.Toast;
+
+import com.bumptech.glide.Glide;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.Map;
 
 import io.micro.easyjsbridge.R;
+import io.micro.easyjsbridge.app.BaseActivity;
 import io.micro.jsbridge.BrowserClient;
 import io.micro.jsbridge.Factory;
 import io.micro.jsbridge.JsBridge;
@@ -28,7 +34,7 @@ import x5webview.SystemWebView;
  *
  * @author act262@gmail.com
  */
-public class SimpleWebActivity extends AppCompatActivity {
+public class SimpleWebActivity extends BaseActivity {
 
     private WebView mWebView;
     private Toolbar mToolbar;
@@ -92,6 +98,13 @@ public class SimpleWebActivity extends AppCompatActivity {
         mWebView.setWebChromeClient(new MyWebChromeClient());
         mWebView.setWebViewClient(new MyWebViewClient());
 
+        jsBridge.on("helloNative", new JsResultHandler() {
+            @Override
+            public void perform(Map<String, String> payload, JsCallback callback) {
+                showToast(payload.get("say"));
+            }
+        });
+
         jsBridge.on("addRightButton", new JsResultHandler() {
             @Override
             public void perform(Map<String, String> payload, JsCallback callback) {
@@ -107,6 +120,38 @@ public class SimpleWebActivity extends AppCompatActivity {
                 String shareImage = payload.get("shareImage");
                 String shareUrl = payload.get("shareUrl");
                 Toast.makeText(SimpleWebActivity.this, "share....", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        jsBridge.on("shareButton", new JsResultHandler() {
+            @Override
+            public void perform(Map<String, String> payload, JsCallback callback) {
+                setupShareButton1(payload);
+            }
+        });
+    }
+
+    private void setupShareButton1(final Map<String, String> payload) {
+        final ImageButton button = new ImageButton(this);
+        mToolbar.addView(button);
+        button.setContentDescription(payload.get("text"));
+        Glide.with(this).load(payload.get("icon")).into(button);
+
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    String share = payload.get("share");
+                    JSONObject jsonObject = new JSONObject(share);
+                    String shareTitle = jsonObject.optString("shareTitle");
+                    String shareContent = jsonObject.optString("shareContent");
+                    String shareImage = jsonObject.optString("shareImage");
+                    String shareUrl = jsonObject.optString("shareUrl");
+
+                    showToast("share");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
         });
     }
@@ -125,6 +170,7 @@ public class SimpleWebActivity extends AppCompatActivity {
             }
         });
     }
+
 
     private class MyWebChromeClient extends WebChromeClient {
         @Override
