@@ -2,6 +2,7 @@ package io.micro.easyjsbridge.web;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.support.v4.util.ArrayMap;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.webkit.WebChromeClient;
@@ -11,7 +12,6 @@ import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
-import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 
@@ -98,6 +98,28 @@ public class SimpleWebActivity extends BaseActivity {
         mWebView.setWebChromeClient(new MyWebChromeClient());
         mWebView.setWebViewClient(new MyWebViewClient());
 
+        jsBridge.on("getEnvironment", new JsResultHandler() {
+            @Override
+            public void perform(Map<String, String> payload, JsCallback callback) {
+                ArrayMap<String, String> result = new ArrayMap<>(5);
+                result.put("busi", "app");
+                result.put("id", "xxxxxx");
+                result.put("platform", "1");
+                result.put("channel", "test");
+                result.put("version", "1.0.0");
+                callback.onCall(result);
+            }
+        });
+        jsBridge.on("getSession", new JsResultHandler() {
+            @Override
+            public void perform(Map<String, String> payload, JsCallback callback) {
+                ArrayMap<String, String> result = new ArrayMap<>(2);
+                result.put("uid", "uidxxxxxx");
+                result.put("sid", "sidyyyyyy");
+                callback.onCall(result);
+            }
+        });
+
         jsBridge.on("helloNative", new JsResultHandler() {
             @Override
             public void perform(Map<String, String> payload, JsCallback callback) {
@@ -119,7 +141,7 @@ public class SimpleWebActivity extends BaseActivity {
                 String shareContent = payload.get("shareContent");
                 String shareImage = payload.get("shareImage");
                 String shareUrl = payload.get("shareUrl");
-                Toast.makeText(SimpleWebActivity.this, "share....", Toast.LENGTH_SHORT).show();
+                showToast("share...");
             }
         });
 
@@ -170,7 +192,6 @@ public class SimpleWebActivity extends BaseActivity {
             }
         });
     }
-
 
     private class MyWebChromeClient extends WebChromeClient {
         @Override

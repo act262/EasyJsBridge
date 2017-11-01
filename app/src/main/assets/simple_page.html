@@ -9,7 +9,7 @@
     <script src="https://res.wx.qq.com/mmbizwap/zh_CN/htmledition/js/vconsole/2.5.1/vconsole.min.js"></script>
     <!-- JsBridge -->
     <script src="./lib/jockey.js"></script>
-    <script src="./lib/jsbridge.js"></script>
+    <script src="./lib/simple_jsbridge.js"></script>
 
 </head>
 
@@ -20,24 +20,31 @@
 <a href="http://dldir1.qq.com/weixin/android/weixin6516android1120.apk">download apk</a>
 <br/>
 <a href="market://details?id=com.tencent.mm">goto market</a>
-
-<script>
-
-    Jockey.on("helloWeb", function (payload) {
-        console.log("hello from native")
-        console.log(payload)
-    });
-
-    function sayHelloToNative() {
-        Jockey.send("helloNative",{say:'Hello world!'})
-    }
-
-</script>
-
+<hr/>
 <p>
     js -> app
     <button onclick="sayHelloToNative()">sayHelloToNative</button>
 </p>
 
+<hr/>
+
+<div id="webDiv">
+    <p>这是一块东西</p>
+</div>
+
+<script>
+
+    Jockey.on("helloWeb", function (payload) {
+        console.log("hello from native");
+        console.log(payload)
+    });
+
+    function sayHelloToNative() {
+        Jockey.send("helloNative", {say: 'Hello world!'});
+    }
+
+</script>
+
 </body>
+
 </html>
