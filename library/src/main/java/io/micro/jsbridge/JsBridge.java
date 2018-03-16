@@ -3,13 +3,11 @@ package io.micro.jsbridge;
 import java.util.Map;
 
 /**
- * Javascript Bridge
+ * Javascript & Native Bridge
  *
  * @author act262@gmail.com
  */
 public interface JsBridge {
-
-    void configure(Browser browser);
 
     void on(String type, JsResultHandler handler);
 
@@ -21,10 +19,10 @@ public interface JsBridge {
 
     void send(String type);
 
-    void send(String type, Map<String, String> payload);
-
     void send(String type, JsCallback callback);
 
-    void send(String type, Map<String, String> payload, JsCallback callback);
+    <T> void send(String type, Map<String, T> payload);
+
+    <T> void send(String type, Map<String, T> payload, JsCallback callback);
 
 }

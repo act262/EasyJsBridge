@@ -7,8 +7,9 @@ import java.util.Map;
  *
  * @author act262@gmail.com
  */
-public class JsResultHandler {
+public interface JsResultHandler {
 
-    public void perform(Map<String, String> payload, JsCallback callback) {
-    }
+    // TODO: 2018/3/12 泛型支持
+    void perform(Map<String, Object> payload, JsCallback callback);
+
 }

@@ -9,6 +9,6 @@ import java.util.Map;
  */
 public interface JsCallback {
 
-    void onCall(Map<String, String> payload);
+   <T> void onCall(Map<String, T> payload);
 
 }

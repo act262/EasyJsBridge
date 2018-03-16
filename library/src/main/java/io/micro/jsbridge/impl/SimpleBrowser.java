@@ -1,6 +1,4 @@
-package x5webview;
-
-import android.webkit.ValueCallback;
+package io.micro.jsbridge.impl;
 
 import io.micro.jsbridge.Browser;
 
@@ -13,10 +11,6 @@ public class SimpleBrowser implements Browser {
 
     @Override
     public void loadUrl(String url) {
-    }
-
-    @Override
-    public void evaluateJavascript(String script, ValueCallback<String> resultCallback) {
     }
 
     @Override

@@ -1,27 +1,33 @@
-package io.micro.jsbridge;
+package io.micro.jsbridge.impl;
 
+import android.support.v4.util.ArrayMap;
+import android.util.Log;
 import android.util.SparseArray;
 
 import org.json.JSONObject;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+
+import io.micro.jsbridge.Browser;
+import io.micro.jsbridge.JsBridge;
+import io.micro.jsbridge.JsBridgeConfig;
+import io.micro.jsbridge.JsCallback;
+import io.micro.jsbridge.JsResultHandler;
 
 /**
  * Js bridge implementation.
  *
  * @author act262@gmail.com
  */
-class JsBridgeImpl implements JsBridge {
+public class JsBridgeImpl implements JsBridge {
 
     private Browser mBrowser;
-    private Map<String, JsResultHandler> mListeners = new HashMap<>(10);
+    private Map<String, JsResultHandler> mListeners = new ArrayMap<>(10);
     private SparseArray<JsCallback> mCallbacks = new SparseArray<>(10);
 
-    @Override
-    public void configure(Browser browser) {
+    public JsBridgeImpl(Browser browser) {
         this.mBrowser = browser;
     }
 
@@ -56,17 +62,17 @@ class JsBridgeImpl implements JsBridge {
     }
 
     @Override
-    public void send(String type, Map<String, String> payload) {
-        send(type, payload, null);
-    }
-
-    @Override
     public void send(String type, JsCallback callback) {
         send(type, null, callback);
     }
 
     @Override
-    public void send(String type, Map<String, String> payload, JsCallback callback) {
+    public <T> void send(String type, Map<String, T> payload) {
+        send(type, payload, null);
+    }
+
+    @Override
+    public <T> void send(String type, Map<String, T> payload, JsCallback callback) {
         int messageId = messageCount;
         if (callback != null) {
             mCallbacks.put(messageId, callback);
@@ -79,7 +85,7 @@ class JsBridgeImpl implements JsBridge {
     private int messageCount = 0;
 
     // A
-    private void triggerEventToWebView(String type, int messageId, Map<String, String> payload) {
+    private <T> void triggerEventToWebView(String type, int messageId, Map<String, T> payload) {
         if (payload == null)
             payload = Collections.emptyMap();
 
@@ -87,12 +93,15 @@ class JsBridgeImpl implements JsBridge {
                 "Jockey.trigger(\"%s\",%d,%s)",
                 type, messageId, new JSONObject(payload));
 
-        System.out.println("JsBridgeImpl.triggerEventToWebView script = " + script);
+        if (JsBridgeConfig.DEBUG) {
+            Log.d(JsBridgeConfig.TAG, "triggerEventToWebView: " + script);
+        }
+
         mBrowser.execJs(script);
     }
 
     // B
-    private void triggerCallbackToWebView(int messageId, Map<String, String> payload) {
+    private <T> void triggerCallbackToWebView(int messageId, Map<String, T> payload) {
         if (payload == null)
             payload = Collections.emptyMap();
 
@@ -100,36 +109,44 @@ class JsBridgeImpl implements JsBridge {
                 "Jockey.triggerCallback(\"%d\", %s)",
                 messageId, new JSONObject(payload));
 
-        System.out.println("JsBridgeImpl.triggerCallbackToWebView script = " + script);
+        if (JsBridgeConfig.DEBUG) {
+            Log.d(JsBridgeConfig.TAG, "triggerCallbackToWebView: " + script);
+        }
+
         mBrowser.execJs(script);
     }
 
     // 1
     void triggerEventFromWebView(Spec parameter) {
+        if (JsBridgeConfig.DEBUG) {
+            Log.d(JsBridgeConfig.TAG, "triggerEventFromWebView: " + parameter);
+        }
+
         if (!handle(parameter.type)) {
             return;
         }
+
         final int id = parameter.id;
         JsResultHandler handler = mListeners.get(parameter.type);
         handler.perform(parameter.payload, new JsCallback() {
             @Override
-            public void onCall(Map<String, String> payload) {
+            public <T> void onCall(Map<String, T> payload) {
                 triggerCallbackToWebView(id, payload);
             }
         });
-
-        System.out.println("JsBridgeImpl.triggerEventFromWebView " + parameter);
     }
 
     // 2
     void triggerCallbackFromWebView(Spec parameter) {
+        if (JsBridgeConfig.DEBUG) {
+            Log.d(JsBridgeConfig.TAG, "triggerCallbackFromWebView: " + parameter);
+        }
+
         JsCallback callback = mCallbacks.get(parameter.id);
         if (callback != null) {
             callback.onCall(parameter.payload);
             mCallbacks.remove(parameter.id);
         }
-
-        System.out.println("JsBridgeImpl.triggerCallbackFromWebView " + parameter);
     }
 
 }

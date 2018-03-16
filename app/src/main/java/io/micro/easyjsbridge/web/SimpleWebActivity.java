@@ -20,14 +20,14 @@ import org.json.JSONObject;
 
 import java.util.Map;
 
+import io.micro.easyjsbridge.BuildConfig;
 import io.micro.easyjsbridge.R;
 import io.micro.easyjsbridge.app.BaseActivity;
-import io.micro.jsbridge.BrowserClient;
-import io.micro.jsbridge.Factory;
-import io.micro.jsbridge.JsBridge;
+import io.micro.jsbridge.JsBridgeClient;
+import io.micro.jsbridge.JsBridgeConfig;
 import io.micro.jsbridge.JsCallback;
 import io.micro.jsbridge.JsResultHandler;
-import x5webview.SystemWebView;
+import io.micro.jsbridge.impl.SystemWebBrowserImpl;
 
 /**
  * Use System WebView.
@@ -39,7 +39,7 @@ public class SimpleWebActivity extends BaseActivity {
     private WebView mWebView;
     private Toolbar mToolbar;
 
-    private JsBridge jsBridge;
+    private JsBridgeClient jsBridge;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,14 +93,14 @@ public class SimpleWebActivity extends BaseActivity {
     }
 
     private void setupWeb() {
-        jsBridge = Factory.getDefault();
-        jsBridge.configure(new SystemWebView(mWebView));
+        JsBridgeConfig.DEBUG = BuildConfig.DEBUG;
+        jsBridge = new JsBridgeClient(new SystemWebBrowserImpl(mWebView));
         mWebView.setWebChromeClient(new MyWebChromeClient());
         mWebView.setWebViewClient(new MyWebViewClient());
 
         jsBridge.on("getEnvironment", new JsResultHandler() {
             @Override
-            public void perform(Map<String, String> payload, JsCallback callback) {
+            public void perform(Map<String, Object> payload, JsCallback callback) {
                 ArrayMap<String, String> result = new ArrayMap<>(5);
                 result.put("busi", "app");
                 result.put("id", "xxxxxx");
@@ -112,7 +112,7 @@ public class SimpleWebActivity extends BaseActivity {
         });
         jsBridge.on("getSession", new JsResultHandler() {
             @Override
-            public void perform(Map<String, String> payload, JsCallback callback) {
+            public void perform(Map<String, Object> payload, JsCallback callback) {
                 ArrayMap<String, String> result = new ArrayMap<>(2);
                 result.put("uid", "uidxxxxxx");
                 result.put("sid", "sidyyyyyy");
@@ -122,42 +122,52 @@ public class SimpleWebActivity extends BaseActivity {
 
         jsBridge.on("helloNative", new JsResultHandler() {
             @Override
-            public void perform(Map<String, String> payload, JsCallback callback) {
-                showToast(payload.get("say"));
+            public void perform(Map<String, Object> payload, JsCallback callback) {
+                showToast(payload.get("say").toString());
             }
         });
 
         jsBridge.on("addRightButton", new JsResultHandler() {
             @Override
-            public void perform(Map<String, String> payload, JsCallback callback) {
-                addRightButton(payload, callback);
+            public void perform(Map<String, Object> payload, JsCallback callback) {
+                addRightButton(convert(payload), callback);
             }
         });
 
         jsBridge.on("showShare", new JsResultHandler() {
             @Override
-            public void perform(Map<String, String> payload, JsCallback callback) {
-                String shareTitle = payload.get("shareTitle");
-                String shareContent = payload.get("shareContent");
-                String shareImage = payload.get("shareImage");
-                String shareUrl = payload.get("shareUrl");
+            public void perform(Map<String, Object> payload, JsCallback callback) {
+                String shareTitle = payload.get("shareTitle").toString();
+                String shareContent = payload.get("shareContent").toString();
+                String shareImage = payload.get("shareImage").toString();
+                String shareUrl = payload.get("shareUrl").toString();
                 showToast("share...");
             }
         });
 
         jsBridge.on("shareButton", new JsResultHandler() {
             @Override
-            public void perform(Map<String, String> payload, JsCallback callback) {
-                setupShareButton1(payload);
+            public void perform(Map<String, Object> payload, JsCallback callback) {
+                setupShareButton1(convert(payload));
             }
         });
     }
 
+    private Map<String, String> convert(Map<String, Object> payload) {
+        Map<String, String> map = new ArrayMap<>(payload.size());
+        for (Map.Entry<String, Object> entry : payload.entrySet()) {
+            map.put(entry.getKey(), entry.getValue().toString());
+        }
+        return map;
+    }
+
     private void setupShareButton1(final Map<String, String> payload) {
         final ImageButton button = new ImageButton(this);
-        mToolbar.addView(button);
+        mToolbar.addView(button, new Toolbar.LayoutParams(120, 120));
         button.setContentDescription(payload.get("text"));
-        Glide.with(this).load(payload.get("icon")).into(button);
+        Glide.with(this)
+                .load(payload.get("icon"))
+                .into(button);
 
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -202,16 +212,10 @@ public class SimpleWebActivity extends BaseActivity {
 
     private class MyWebViewClient extends WebViewClient {
 
-        private final BrowserClient delegate;
-
-        MyWebViewClient() {
-            delegate = Factory.getDefault(jsBridge);
-        }
-
         @Override
         public boolean shouldOverrideUrlLoading(WebView webView, String url) {
             return WebHelper.processUrl(SimpleWebActivity.this, url)
-                    || delegate.shouldOverrideUrlLoading(url);
+                    || jsBridge.onInterceptUrl(url);
         }
     }
 

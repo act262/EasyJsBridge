@@ -1,7 +1,5 @@
 package io.micro.jsbridge;
 
-import android.webkit.ValueCallback;
-
 /**
  * WebView core's abstract interface.
  *
@@ -11,8 +9,5 @@ public interface Browser {
 
     void loadUrl(String url);
 
-    void evaluateJavascript(String script, ValueCallback<String> resultCallback);
-
     void execJs(String script);
-
 }

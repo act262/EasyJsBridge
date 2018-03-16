@@ -1,43 +1,35 @@
-package io.micro.jsbridge;
+package io.micro.jsbridge.impl;
 
 import android.net.Uri;
+import android.support.v4.util.ArrayMap;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 /**
- * WebViewClient implementation.
+ * ParameterSpec
  *
  * @author act262@gmail.com
  */
-class BrowserClientImpl implements BrowserClient {
+class Spec {
+    public String url;
+    public String event;
 
-    private JsBridgeImpl jsBridge;
-
-    public BrowserClientImpl(JsBridgeImpl jsBridge) {
-        this.jsBridge = jsBridge;
-    }
+    public int id;
+    public String type;
+    public String host;
+    public Map<String, Object> payload = Collections.emptyMap();
 
     @Override
-    public boolean shouldOverrideUrlLoading(String url) {
-        Uri uri = Uri.parse(url);
-        if (matchScheme(uri)) {
-            process(uri);
-            return true;
-        }
-        return false;
+    public String toString() {
+        return url;
     }
 
-
-    private boolean matchScheme(Uri uri) {
-        return "jockey".equalsIgnoreCase(uri.getScheme());
-    }
-
-    private void process(Uri uri) {
+    public static Spec parse(Uri uri) {
         // jockey://event/0?{"id":0,"type":"getEnvironment","host":"h5.jfz.net","payload":{}}
 
         String scheme = uri.getScheme(); // jockey
@@ -45,30 +37,23 @@ class BrowserClientImpl implements BrowserClient {
         String path = uri.getPath(); // 0 -> id
         String query = uri.getQuery(); // {"id":0,"host":"h5.jfz.net","type":"xxx","payload":{}}
 
-        Spec parameter = parse(query);
-
-        if ("event".equals(host)) {
-            jsBridge.triggerEventFromWebView(parameter);
-        } else if ("callback".equals(host)) {
-            jsBridge.triggerCallbackFromWebView(parameter);
-        }
-    }
-
-    private Spec parse(String query) {
         Spec parameter = new Spec();
         try {
             JSONObject jsonObject = new JSONObject(query);
+            parameter.url = Uri.decode(uri.toString());
+            parameter.event = host;
+
             parameter.id = jsonObject.optInt("id");
             parameter.host = jsonObject.optString("host");
             parameter.type = jsonObject.optString("type");
 
             if (jsonObject.has("payload")) {
                 JSONObject payload = jsonObject.optJSONObject("payload");
-                parameter.payload = new HashMap<>(payload.length());
+                parameter.payload = new ArrayMap<>(payload.length());
                 Iterator<String> keys = payload.keys();
                 while (keys.hasNext()) {
                     String key = keys.next();
-                    parameter.payload.put(key, payload.optString(key));
+                    parameter.payload.put(key, payload.opt(key));
                 }
             } else {
                 parameter.payload = Collections.emptyMap();
